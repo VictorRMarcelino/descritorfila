@@ -14,9 +14,10 @@ const FILA_MONO     = 1;
 			OPCAO_MENU_ATUALIZAR_FILA  = 1;
 			OPCAO_MENU_GERAR_RELATORIO = 2;
 			
-	    ACAO_FILA_ENTRAR     = 1; 
-	  	ACAO_FILA_ATENDER    = 2;
-	  	ACAO_LISTAR_CLIENTES = 3;
+	    ACAO_FILA_ENTRAR     				 = 1; 
+	  	ACAO_FILA_ATENDER    			   = 2;
+	  	ACAO_LISTAR_CLIENTES 				 = 3;
+	  	ACAO_LISTAR_INFORMACOES_FILA = 4;
  
 type tipoPessoa = record
 		 								nome:string;
@@ -25,7 +26,7 @@ type tipoPessoa = record
  		 tipoArrayFila = array[1..11] of tipoPessoa;
 		 
  		 tipoFila = record
-		 							Fila                :tipoArrayFila;
+		 							Fila                : tipoArrayFila;
 		 							id 									: integer;
 		 							descricao 				  : string;
 									quantidadeElementos : integer;
@@ -74,51 +75,55 @@ var sNome: string;
 var oPessoa: tipoPessoa;
 begin;
 	clrscr;
-	writeln('Qual o seu nome?');
+	writeln('Qual o nome do cliente?');
 	readln(sNome);
 	oPessoa.nome    := sNome;
 	criaNovoCliente := oPessoa;	
 end;
 
 {
-	Insere uma nova pessoa em determinada fila
+	Insere um novo cliente em determinada fila
 	@param tipoFila oFila
 }									
 procedure adicionaCliente(var oFila:tipoFila);
-	var oPessoa:tipoPessoa;
-begin
-
-if not isCheia(oFila) then
-	begin
-		oPessoa := criaNovoCliente();
-		clrscr;
-		oFila.quantidadeElementos						 := oFila.quantidadeElementos + 1;
-		oFila.fila[oFila.quantidadeElementos]:= oPessoa;
-		oFila.quantidadeEntrantes						 := oFila.quantidadeEntrantes + 1;
-		writeln('O cliente ', oPessoa.nome, ' foi adicionado com sucesso na fila ', oFila.descricao, '! Posição: ', oFila.quantidadeElementos);
-	end
-else
-	writeln('A Fila está cheia');
-	oFila.quantidadeRejeitadas := oFila.quantidadeRejeitadas + 1;
+var oPessoa:tipoPessoa;
+begin;
+	if isCheia(oFila) <> true then
+		begin
+			oPessoa := criaNovoCliente();
+			clrscr;
+			oFila.quantidadeElementos						 := oFila.quantidadeElementos + 1;
+			oFila.fila[oFila.quantidadeElementos]:= oPessoa;
+			oFila.quantidadeEntrantes						 := oFila.quantidadeEntrantes + 1;
+			writeln('O cliente ', oPessoa.nome, ' foi adicionado com sucesso na fila ', oFila.descricao, '! Posição: ', oFila.quantidadeElementos);
+		end
+	else
+		begin;
+			clrscr;
+			writeln('A Fila está cheia!');
+			oFila.quantidadeRejeitadas := oFila.quantidadeRejeitadas + 1;
+		end;
 end;
 
 {
-	Realiza a remoção de um elemento da lista
+	Realiza o atendimento de determinada fila
 	@param tipoFila oFila
 }
-procedure atenderFila(oFila: tipoFila);
+procedure atenderFila(var oFila: tipoFila);
 var i: integer;
 begin;
-	if not isCheia(oFila) then
+	clrscr;
+	if isVazia(oFila) <> true then
 		begin;
 			writeln('Realizado o atendimento do cliente ', oFila.Fila[1].nome, ', que estava presente na fila ', oFila.descricao);
 			
 			for i := 1 to (oFila.quantidadeElementos) do
 				begin;
 					oFila.Fila[i] := oFila.Fila[i + 1];
-					oFila.quantidadeElementos := oFila.quantidadeElementos - 1;
-					oFila.quantidadeAtendidas := oFila.quantidadeAtendidas + 1;
 				end;
+				
+			oFila.quantidadeElementos := oFila.quantidadeElementos - 1;
+			oFila.quantidadeAtendidas := oFila.quantidadeAtendidas + 1;
 		end
 	else 
 		begin;
@@ -145,7 +150,30 @@ begin;
 end;
 
 {
-	Questiona ao usuário qual fila ele desejar realizar um procedimento;
+	Lista as informações de uma fila específica
+	@param tipoFila oFila
+}
+procedure listarInformacoesFila(oFila: tipoFila);
+begin;
+	clrscr;
+	writeln('Informações da Fila');
+	writeln('-------------------');
+	writeln('ID: '										, oFila.id);
+	writeln('Descrição: '							, oFila.descricao);
+	writeln('Quantidade de Clientes: ', oFila.quantidadeElementos);
+	writeln('Quantidade Máxima: '			, oFila.quantidadeMaxima);
+	writeln('Quantidade Entrantes: '	, oFila.quantidadeEntrantes);
+	writeln('Quantidade Atendidos: '  , oFila.quantidadeAtendidas);
+	writeln('Quantidade Rejeitados: ' , oFila.quantidadeRejeitadas);
+	writeln('-------------------');
+	writeln('');
+end;
+
+{
+	Questiona ao usuário qual fila ele desejar realizar um procedimento
+	@param tipoFila oFilaMono
+	@param tipoFila oFilaColor
+	@param tipoFila oFilaPlotter
 	@return tipoFila
 }
 function escolheFila(oFilaMono, oFilaColor, oFilaPlotter: tipoFila): tipoFila; 
@@ -156,7 +184,7 @@ begin;
 	while ((iFila <> FILA_MONO) AND (iFila <> FILA_COLOR) AND (iFila <> FILA_PLOTTER)) do
 		begin;
 			clrscr;
-			writeln('Escolha a fila desejada');
+			writeln('Escolha a fila que deseja gerenciar');
 			writeln(FILA_MONO   , ' - ', _FILA_MONO);
 			writeln(FILA_COLOR  , ' - ', _FILA_COLOR);
 			writeln(FILA_PLOTTER, ' - ', _FILA_PLOTTER);
@@ -178,25 +206,26 @@ begin;
 end;
 
 {
-	Processa a ação informada no menu
+	Realiza o gerenciamento de determinada fila
 	@param tipoFila oFilaMono
 	@param tipoFila oFilaColor
 	@param tipoFila oFilaPlotter
 }
-procedure atualizaFila(var oFilaMono, oFilaColor, oFilaPlotter: tipoFila);
+procedure gerenciaFila(var oFilaMono, oFilaColor, oFilaPlotter: tipoFila);
 var oFila: tipoFila;
 var iAcao: integer;
 begin;
 	oFila := escolheFila(oFilaMono, oFilaColor, oFilaPlotter);
 	clrscr;
 	
-	while (iAcao <> 4) do
+	while (iAcao <> 5) do
 		begin;
 			writeln('Qual atualização você deseja fazer na fila?');
 			writeln('1 - Inserir Novo Cliente');
 			writeln('2 - Realizar Atendimento');
 			writeln('3 - Listar clientes');
-			writeln('4 - Voltar');
+			writeln('4 - Listar Informações Fila');
+			writeln('5 - Voltar');
 			readln(iAcao);
 			
 			{Executa determinada ação}
@@ -211,6 +240,10 @@ begin;
 			else if (iAcao = ACAO_LISTAR_CLIENTES) then
 				begin;
 					listarClientes(oFila);
+				end
+			else if (iAcao = ACAO_LISTAR_INFORMACOES_FILA) then
+				begin;
+					listarInformacoesFila(oFila);
 				end;
 			
 			{Atualiza o parâmetro de referência com o clone que tem as alterações}	
@@ -230,7 +263,7 @@ begin;
 end;
 
 {
-	Gera o relatório de status das filas
+	Gera o relatório geral das filas
 	@param tipoFila oFilaMono
 	@param tipoFila oFilaColor
 	@param tipoFila oFilaPlotter
@@ -240,7 +273,9 @@ begin;
 	clrscr;
 	writeln ('    RELATÓRIO    ');
   writeln ('-----------------');
-  writeln ('Descrição | Qtd. Entrantes | Qtd. Atendidas | Qtd. Rejeitadas');
+  writeln (oFilaMono.id   , ' - ', oFilaMono.descricao   , ' | Qtd. Entrantes: ', oFilaMono.quantidadeEntrantes   , ' | Qtd. Atendidas: ', oFilaMono.quantidadeAtendidas   , ' | Qtd. Rejeitadas: ', oFilaMono.quantidadeRejeitadas);
+  writeln (oFilaColor.id  , ' - ', oFilaColor.descricao  , ' | Qtd. Entrantes: ', oFilaColor.quantidadeEntrantes  , ' | Qtd. Atendidas: ', oFilaColor.quantidadeAtendidas  , ' | Qtd. Rejeitadas: ', oFilaColor.quantidadeRejeitadas);
+  writeln (oFilaPlotter.id, ' - ', oFilaPlotter.descricao, ' | Qtd. Entrantes: ', oFilaPlotter.quantidadeEntrantes, ' | Qtd. Atendidas: ', oFilaPlotter.quantidadeAtendidas, ' | Qtd. Rejeitadas: ', oFilaPlotter.quantidadeRejeitadas);
 	writeln ('-----------------');	
 end;
 
@@ -256,11 +291,11 @@ begin;
 	oFilaMono.quantidadeMaxima    := MAX_QTD_MONO;
 	oFilaMono.descricao 				  := _FILA_MONO;
 	
-	oFilaMono.id    							:= FILA_COLOR;
+	oFilaColor.id    							:= FILA_COLOR;
 	oFilaColor.quantidadeMaxima   := MAX_QTD_COLOR;
 	oFilaColor.descricao 				  := _FILA_COLOR;
 	
-	oFilaMono.id    							:= FILA_PLOTTER;
+	oFilaPlotter.id    							:= FILA_PLOTTER;
 	oFilaPlotter.quantidadeMaxima := MAX_QTD_PLOTTER;
 	oFilaPlotter.descricao 				:= _FILA_PLOTTER;
 end;
@@ -278,7 +313,7 @@ begin;
 		begin;
 			writeln ('    MENU    ');
 			writeln ('------------');
-			writeln ('1 - Atualiza fila');
+			writeln ('1 - Gerenciar fila');
 			writeln ('2 - Gerar relatório geral');
 			writeln ('3 - Finalizar');
 			readln(opcao);
@@ -286,7 +321,8 @@ begin;
 			
 			if (opcao = OPCAO_MENU_ATUALIZAR_FILA) then
 				begin; 
-					atualizaFila(FilaMono, FilaColor, FilaPlotter);	
+					gerenciaFila(FilaMono, FilaColor, FilaPlotter);
+					clrscr;	
 				end
 			else if (opcao = OPCAO_MENU_GERAR_RELATORIO) then
 				begin;
